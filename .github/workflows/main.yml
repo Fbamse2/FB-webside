@@ -1,22 +1,17 @@
-name: Deploy main to GitHub Pages
+name: Deploy GitHub Pages
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,18 +23,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+      - name: Install Flask
+        run: pip install -r main/requirements.txt
 
-      - name: Run app.py to generate static site
-        run: |
-          python main/app.py
+      - name: Build site
+        run: python main/app.py
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./main
+          path: main/dist
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy
         uses: actions/deploy-pages@v4

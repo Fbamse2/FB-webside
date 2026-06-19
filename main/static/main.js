@@ -1,30 +1,24 @@
 const searchBox = document.getElementById("projectSearch");
 
 if (searchBox) {
-searchBox.addEventListener("input", () => {
+    searchBox.addEventListener("input", () => {
 
+        const query = searchBox.value.toLowerCase().trim();
 
-    const query = searchBox.value.toLowerCase();
+        document.querySelectorAll(".project-card").forEach(card => {
 
-    document.querySelectorAll(".project-card").forEach(card => {
+            const nameEl = card.querySelector(".project-name");
+            const descEl = card.querySelector("p");
 
-        const name =
-            card.querySelector(".project-name")
-                .textContent
-                .toLowerCase();
+            const name = nameEl ? nameEl.textContent.toLowerCase() : "";
+            const description = descEl ? descEl.textContent.toLowerCase() : "";
 
-        const description =
-            card.querySelector("p")
-                .textContent
-                .toLowerCase();
+            const visible =
+                name.includes(query) ||
+                description.includes(query);
 
-        const visible =
-            name.includes(query) ||
-            description.includes(query);
+            card.style.display = visible ? "block" : "none";
+        });
 
-        card.style.display = visible ? "" : "none";
     });
-});
-
-
 }

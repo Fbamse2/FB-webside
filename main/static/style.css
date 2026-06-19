@@ -188,6 +188,10 @@ body{
     overflow:hidden;
 }
 
+.project-card {
+    display: block;
+}
+
 .card:hover{
     transform:translateY(-8px);
 
