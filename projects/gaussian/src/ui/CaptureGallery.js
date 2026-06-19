@@ -1,5 +1,5 @@
 import { state }            from '../app/State.js';
-import { MASTER_DELETE_CODE } from '../app/Config.js';
+import { MASTER_DELETE_CODE, DEBUG } from '../app/Config.js';
 import { showToast }          from './Toast.js';
 import { updateViewMatrix, saveCameraState } from '../renderer/CameraController.js';
 
@@ -93,6 +93,7 @@ function renderPresetsGallery() {
             state.cameraRotation = [...preset.rotation];
             updateViewMatrix();
             saveCameraState();
+            if (DEBUG) console.debug('[Capture] goto capture', { position: preset.position, rotation: preset.rotation });
             closePresetsGallery();
             showToast('Moved to capture');
         });
@@ -105,6 +106,7 @@ function renderPresetsGallery() {
             // Ensure the shared URL includes the current splat (`s` param) if absent
             const baseSearch = location.search || (`?s=${(state.activeSplatIndex >= 0 ? state.activeSplatIndex + 1 : 1)}`);
             const url  = location.origin + location.pathname + baseSearch + hash;
+            if (DEBUG) console.debug('[Capture] share preset ->', url);
             navigator.clipboard.writeText(url)
                 .then(() => showToast('📋 Link copied!'))
                 .catch(() => showToast('Could not copy link', 'error'));

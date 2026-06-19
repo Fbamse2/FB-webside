@@ -1,5 +1,6 @@
 import { state } from '../app/State.js';
 import { createViewMatrix } from '../utils/math.js';
+import { DEBUG } from '../app/Config.js';
 
 let _hashTimer = null;
 
@@ -19,6 +20,7 @@ export function saveCameraState() {
         rotation:   state.cameraRotation,
         splatIndex: state.activeSplatIndex,  // remember which scene this camera belongs to
     }));
+    if (DEBUG) console.debug('[Camera] saveCameraState', { position: state.cameraPosition, rotation: state.cameraRotation, splatIndex: state.activeSplatIndex });
     // Do not update location.hash here — keep camera persistence local only.
 }
 
@@ -29,6 +31,7 @@ export function clearCameraHashIfPresent() {
     const match = hash.slice(1).match(/\[([-\d.]+),([-\d.]+),([-\d.]+)\]\[([-\d.]+),([-\d.]+),([-\d.]+)\]/);
     if (match) {
         // Remove only the hash while preserving path and search
+        if (DEBUG) console.debug('[Camera] clearCameraHashIfPresent - found hash', { hash });
         history.replaceState(null, '', location.pathname + location.search);
     }
 }
@@ -37,6 +40,7 @@ export function clearCameraHashIfPresent() {
 export function updateViewMatrix() {
     state.viewMatrix = createViewMatrix(state.cameraPosition, state.cameraRotation);
     state.viewDirty  = true;
+    if (DEBUG) console.debug('[Camera] updateViewMatrix', { position: state.cameraPosition, rotation: state.cameraRotation });
 }
 
 // Apply a splat's default camera, persist it, and recompute the view matrix
@@ -46,4 +50,5 @@ export function resetToSplatCamera(splat) {
     state.cameraRotation = [...splat.cameraRotation];
     updateViewMatrix();
     saveCameraState();
+    if (DEBUG) console.debug('[Camera] resetToSplatCamera', { splatName: splat.name });
 }

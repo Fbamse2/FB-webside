@@ -1,5 +1,5 @@
 import { state }              from '../app/State.js';
-import { ENABLE_SAVE_VIEW }  from '../app/Config.js';
+import { ENABLE_SAVE_VIEW, DEBUG }  from '../app/Config.js';
 import { showToast }         from './Toast.js';
 import { getCachedKeys, clearSplatCache, getCachedImage, setCachedImage, clearImageCache } from '../gaussian/GaussianCache.js';
 import { loadSplat }         from '../loaders/SplatLoader.js';
@@ -545,10 +545,12 @@ export function init() {
                 const hash = `#[${p[0]},${p[1]},${p[2]}][${r[0]},${r[1]},${r[2]}]`;
                 const baseSearch = location.search || (`?s=${(state.activeSplatIndex >= 0 ? state.activeSplatIndex + 1 : 1)}`);
                 const url = location.origin + location.pathname + baseSearch + hash;
+                if (DEBUG) console.debug('[UI] copyLinkBtn -> copying URL', url);
                 navigator.clipboard.writeText(url).then(() => {
                     showToast('📋 Link copied!');
                 }).catch(() => showToast('Could not copy link'));
             } catch (err) {
+                if (DEBUG) console.error('[UI] copyLinkBtn error building URL', err);
                 try { navigator.clipboard.writeText(location.href); showToast('📋 Link copied!'); }
                 catch { showToast('Could not copy link'); }
             }

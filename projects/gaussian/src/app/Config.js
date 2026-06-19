@@ -1,4 +1,6 @@
 export const ENABLE_SAVE_VIEW = false;
+// Enable verbose debugging to `console.debug` when true
+export const DEBUG = false;
 
 // Change this to your own secret
 export const MASTER_DELETE_CODE = "fbamse";

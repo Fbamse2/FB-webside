@@ -1,5 +1,6 @@
 import { state } from './State.js';
 import { updateViewMatrix } from '../renderer/CameraController.js';
+import { DEBUG } from './Config.js';
 
 let routerHandlers = null;
 let suppressRouteSync = false;
@@ -20,12 +21,15 @@ function buildSplatPath(index) {
     const slug = slugify(splat.name) || String(index + 1);
     // Use the gaussian route and a 1-based `s` query parameter (splat number)
     // Example: /gaussian?s=1
-    return `/gaussian?s=${index + 1}`;
+    const path = `/gaussian?s=${index + 1}`;
+    if (DEBUG) console.debug('[Router] buildSplatPath', { index, slug, path });
+    return path;
 }
 
 function parseRouteFromLocation() {
     const path = location.pathname.replace(/\/+$/, '') || '/';
     const parts = path.split('/').filter(Boolean);
+    if (DEBUG) console.debug('[Router] parseRouteFromLocation', { path, parts, search: location.search });
 
     if (!parts.length) return { view: 'splat', index: null };
 
@@ -37,6 +41,7 @@ function parseRouteFromLocation() {
         if (sub === 'splat-index') return { view: 'splat-index', index: null };
         const rawSParam = new URLSearchParams(location.search).get('s');
         const parsedS = rawSParam !== null && rawSParam !== '' ? Number(rawSParam) : NaN;
+        if (DEBUG) console.debug('[Router] parseRouteFromLocation s param', { rawSParam, parsedS });
         const splatNumber = Number.isInteger(parsedS) ? parsedS : null;
 
         if (splatNumber !== null) {
@@ -67,6 +72,7 @@ function writeHistory(pathAndSearch, replace = false) {
     const next = `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`;
     if (current === next) return;
 
+    if (DEBUG) console.debug('[Router] writeHistory', { current, next, replace });
     if (replace) history.replaceState(null, '', next);
     else history.pushState(null, '', next);
 }
@@ -79,6 +85,7 @@ function pathForCurrentUi() {
 
 function applyRoute(route, { loadSplat = false } = {}) {
     if (!routerHandlers) return;
+    if (DEBUG) console.debug('[Router] applyRoute', { route, loadSplat });
 
     suppressRouteSync = true;
     try {
@@ -92,10 +99,12 @@ function applyRoute(route, { loadSplat = false } = {}) {
             state.activeSplatIndex = targetIndex;
             localStorage.setItem('activeSplatIndex', String(targetIndex));
             routerHandlers.renderSplatGrid?.();
+            if (DEBUG) console.debug('[Router] changed activeSplatIndex ->', targetIndex);
             didChangeIndex = true;
         }
 
         if (route.view === 'map') {
+            if (DEBUG) console.debug('[Router] opening map view');
             if (state.overlayOpen) routerHandlers.closeOverlay?.();
             if (!state.mapOpen) routerHandlers.openMap?.();
             return;
@@ -104,6 +113,7 @@ function applyRoute(route, { loadSplat = false } = {}) {
         if (state.mapOpen) routerHandlers.closeMap?.();
 
         if (route.view === 'splat-index') {
+            if (DEBUG) console.debug('[Router] opening splat-index overlay');
             if (!state.overlayOpen) routerHandlers.openOverlay?.();
             return;
         }
@@ -120,6 +130,7 @@ function applyRoute(route, { loadSplat = false } = {}) {
 
 export function syncRouteFromUi({ replace = false } = {}) {
     if (suppressRouteSync || !routerHandlers) return;
+    if (DEBUG) console.debug('[Router] syncRouteFromUi ->', pathForCurrentUi(), { replace });
     writeHistory(pathForCurrentUi(), replace);
 }
 
@@ -138,11 +149,13 @@ export function initRouting(handlers) {
         try {
             const m = location.hash.slice(1).match(/\[([\-\d.]+),([\-\d.]+),([\-\d.]+)\]\[([\-\d.]+),([\-\d.]+),([\-\d.]+)\]/);
             if (m) {
+                if (DEBUG) console.debug('[Router] hashchange parsed camera hash', { hash: location.hash, match: m.slice(1) });
                 state.cameraPosition = [parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3])];
                 state.cameraRotation = [parseFloat(m[4]), parseFloat(m[5]), parseFloat(m[6])];
                 updateViewMatrix();
                 // Remove hash but keep search/path
                 history.replaceState(null, '', location.pathname + location.search);
+                if (DEBUG) console.debug('[Router] removed hash from URL');
                 // If the URL includes a splat (`s`) param, trigger a load
                 applyRoute(parseRouteFromLocation(), { loadSplat: true });
             }
