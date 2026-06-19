@@ -5,10 +5,11 @@
     <title>Redirecting...</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
+        // Do not perform automatic redirects from 404 pages. Show a simple message
+        // instead so hosting environments don't inadvertently navigate to
+        // hardcoded or generated redirect targets.
         (function () {
-            var requestedPath = location.pathname + location.search + location.hash;
-            var next = '/?redirect=' + encodeURIComponent(requestedPath);
-            location.replace(next);
+            document.body.innerHTML = '<p>404 - Not Found</p>';
         })();
     </script>
 </head>
