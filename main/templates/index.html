@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fbamse</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+
+<nav class="topbar">
+    <div class="logo">fbamse</div>
+</nav>
+
+<aside class="sidebar">
+    <a href="#">🏠 Dashboard</a>
+    <a href="#projects">🚀 Projects</a>
+    <!--
+        <a href="#">📚 Collections</a>
+        <a href="#">⚙️ Tools</a>
+    -->
+</aside>
+
+<main class="content">
+
+<section id="projects">
+
+    <div class="projects-header">
+        <h2>Projects</h2>
+
+        <input
+            id="projectSearch"
+            type="text"
+            placeholder="Search projects..."
+        >
+    </div>
+
+    <div class="project-grid">
+
+        {% for project in projects %}
+        <div class="card project-card">
+
+            <h3 class="project-name">
+                {{ project.name }}
+            </h3>
+
+            <p>
+                {{ project.description }}
+            </p>
+
+            <a href="{{ project.url }}">
+                Open →
+            </a>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+</main>
+
+<script src="{{ url_for('static', filename='main.js') }}"></script>
+
+</body>
+</html>
