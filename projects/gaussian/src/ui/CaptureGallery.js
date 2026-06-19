@@ -102,7 +102,9 @@ function renderPresetsGallery() {
             const [x, y, z]    = preset.position.map(v => v.toFixed(4));
             const [rx, ry, rz] = preset.rotation.map(v => v.toFixed(4));
             const hash = `#[${x},${y},${z}][${rx},${ry},${rz}]`;
-            const url  = location.origin + location.pathname + hash;
+            // Ensure the shared URL includes the current splat (`s` param) if absent
+            const baseSearch = location.search || (`?s=${(state.activeSplatIndex >= 0 ? state.activeSplatIndex + 1 : 1)}`);
+            const url  = location.origin + location.pathname + baseSearch + hash;
             navigator.clipboard.writeText(url)
                 .then(() => showToast('📋 Link copied!'))
                 .catch(() => showToast('Could not copy link', 'error'));

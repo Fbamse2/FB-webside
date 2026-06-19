@@ -1,4 +1,5 @@
 import { state } from './State.js';
+import { updateViewMatrix } from '../renderer/CameraController.js';
 
 let routerHandlers = null;
 let suppressRouteSync = false;
@@ -15,9 +16,11 @@ function slugify(value) {
 
 function buildSplatPath(index) {
     const splat = state.splatLibrary[index];
-    if (!splat) return '/splat';
+    if (!splat) return '/gaussian';
     const slug = slugify(splat.name) || String(index + 1);
-    return `/splat/${slug}?i=${index}`;
+    // Use the gaussian route and a 1-based `s` query parameter (splat number)
+    // Example: /gaussian?s=1
+    return `/gaussian?s=${index + 1}`;
 }
 
 function parseRouteFromLocation() {
@@ -25,21 +28,26 @@ function parseRouteFromLocation() {
     const parts = path.split('/').filter(Boolean);
 
     if (!parts.length) return { view: 'splat', index: null };
-    if (parts[0] === 'map') return { view: 'map', index: null };
-    if (parts[0] === 'splat-index') return { view: 'splat-index', index: null };
 
-    if (parts[0] === 'splat') {
-        const slug = parts[1] || null;
-        const rawIndexParam = new URLSearchParams(location.search).get('i');
-        const parsedIndex = rawIndexParam !== null && rawIndexParam !== ''
-            ? Number(rawIndexParam)
-            : NaN;
-        const indexFromQuery = Number.isInteger(parsedIndex) ? parsedIndex : null;
+    // support the gaussian route with `s` query param (1-based)
+    if (parts[0] === 'gaussian') {
+        // support subpaths like /gaussian/map and /gaussian/splat-index
+        const sub = parts[1] || null;
+        if (sub === 'map') return { view: 'map', index: null };
+        if (sub === 'splat-index') return { view: 'splat-index', index: null };
+        const rawSParam = new URLSearchParams(location.search).get('s');
+        const parsedS = rawSParam !== null && rawSParam !== '' ? Number(rawSParam) : NaN;
+        const splatNumber = Number.isInteger(parsedS) ? parsedS : null;
 
-        if (indexFromQuery !== null && indexFromQuery >= 0 && indexFromQuery < state.splatLibrary.length) {
-            return { view: 'splat', index: indexFromQuery };
+        if (splatNumber !== null) {
+            const idx = splatNumber - 1; // convert 1-based to 0-based index
+            if (idx >= 0 && idx < state.splatLibrary.length) {
+                return { view: 'splat', index: idx };
+            }
         }
 
+        // fall back to slug matching if present (e.g. /gaussian/slug)
+        const slug = parts[1] || null;
         if (slug) {
             const foundIdx = state.splatLibrary.findIndex((s) => slugify(s.name) === slug);
             if (foundIdx >= 0) return { view: 'splat', index: foundIdx };
@@ -64,8 +72,8 @@ function writeHistory(pathAndSearch, replace = false) {
 }
 
 function pathForCurrentUi() {
-    if (state.mapOpen) return '/map';
-    if (state.overlayOpen) return '/splat-index';
+    if (state.mapOpen) return '/gaussian/map';
+    if (state.overlayOpen) return '/gaussian/splat-index';
     return buildSplatPath(state.activeSplatIndex);
 }
 
@@ -120,6 +128,25 @@ export function initRouting(handlers) {
 
     window.addEventListener('popstate', () => {
         applyRoute(parseRouteFromLocation(), { loadSplat: true });
+    });
+
+    // Handle hash-based camera shares while the app is running.
+    // When a URL with a camera hash is navigated to (or pasted and entered),
+    // apply the camera, load the requested splat (if any), then remove the hash
+    // from the address bar so the UI stays clean.
+    window.addEventListener('hashchange', () => {
+        try {
+            const m = location.hash.slice(1).match(/\[([\-\d.]+),([\-\d.]+),([\-\d.]+)\]\[([\-\d.]+),([\-\d.]+),([\-\d.]+)\]/);
+            if (m) {
+                state.cameraPosition = [parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3])];
+                state.cameraRotation = [parseFloat(m[4]), parseFloat(m[5]), parseFloat(m[6])];
+                updateViewMatrix();
+                // Remove hash but keep search/path
+                history.replaceState(null, '', location.pathname + location.search);
+                // If the URL includes a splat (`s`) param, trigger a load
+                applyRoute(parseRouteFromLocation(), { loadSplat: true });
+            }
+        } catch (err) { console.error('Failed to parse hash:', err); }
     });
 
     applyRoute(parseRouteFromLocation(), { loadSplat: false });

@@ -65,16 +65,5 @@ export function init() {
     }, { passive: false });
 
     // Hash-based camera restore
-    window.addEventListener('hashchange', () => {
-        try {
-            const m = location.hash.slice(1).match(
-                /\[([-\d.]+),([-\d.]+),([-\d.]+)\]\[([-\d.]+),([-\d.]+),([-\d.]+)\]/
-            );
-            if (m) {
-                state.cameraPosition = [parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3])];
-                state.cameraRotation = [parseFloat(m[4]), parseFloat(m[5]), parseFloat(m[6])];
-                updateViewMatrix();
-            }
-        } catch (err) { console.error('Failed to parse hash:', err); }
-    });
+        // Hash-based camera restore is handled centrally in Router.js
 }

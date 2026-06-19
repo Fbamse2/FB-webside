@@ -10,7 +10,7 @@ app = Flask(__name__)
 PROJECTS = [
     {
         "name": "Gaussian",
-        "url": "gaussian/index.html",
+        "url": "gaussian/",
         "description": "Gaussian splatting experiments and 3D projects."
     }
 ]

@@ -539,9 +539,19 @@ export function init() {
     const copyLinkBtn = document.getElementById('copy-link-btn');
     if (copyLinkBtn) {
         copyLinkBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(location.href).then(() => {
-                showToast('📋 Link copied!');
-            }).catch(() => showToast('Could not copy link'));
+            try {
+                const p = state.cameraPosition.map(v => v.toFixed(4));
+                const r = state.cameraRotation.map(v => v.toFixed(4));
+                const hash = `#[${p[0]},${p[1]},${p[2]}][${r[0]},${r[1]},${r[2]}]`;
+                const baseSearch = location.search || (`?s=${(state.activeSplatIndex >= 0 ? state.activeSplatIndex + 1 : 1)}`);
+                const url = location.origin + location.pathname + baseSearch + hash;
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('📋 Link copied!');
+                }).catch(() => showToast('Could not copy link'));
+            } catch (err) {
+                try { navigator.clipboard.writeText(location.href); showToast('📋 Link copied!'); }
+                catch { showToast('Could not copy link'); }
+            }
             settingsDropdown.classList.remove('open');
         });
     }

@@ -1,7 +1,7 @@
 import { state }             from './State.js';
 import { init as initRenderer }   from '../renderer/Renderer.js';
 import { start as startLoop }     from '../renderer/RenderLoop.js';
-import { resetToSplatCamera }     from '../renderer/CameraController.js';
+import { resetToSplatCamera, clearCameraHashIfPresent }     from '../renderer/CameraController.js';
 import { init as initInput }      from '../input/InputManager.js';
 import { onKeyB, onKeyK, onKeyC, onEscape } from '../input/InputManager.js';
 import { init as initTouch }      from '../input/TouchInput.js';
@@ -81,6 +81,8 @@ export async function init() {
         loadSplat(splatNoCamera);
     }
 
+    // Remove any camera hash that was used to override the camera on load
+    clearCameraHashIfPresent();
     syncRouteFromUi({ replace: true });
 
     // ── Start render loop ─────────────────────────────────────────
