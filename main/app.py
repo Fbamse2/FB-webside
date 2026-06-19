@@ -19,12 +19,18 @@ def home():
 def build():
     os.makedirs("main/dist", exist_ok=True)
 
-    html = render_template("index.html", projects=PROJECTS)
+    # 🔥 FIX: create Flask context
+    with app.app_context():
+        html = render_template("index.html", projects=PROJECTS)
 
     with open("main/dist/index.html", "w", encoding="utf-8") as f:
         f.write(html)
 
-    shutil.copytree("main/static", "main/dist/static", dirs_exist_ok=True)
+    shutil.copytree(
+        "main/static",
+        "main/dist/static",
+        dirs_exist_ok=True
+    )
 
 if __name__ == "__main__":
     build()
