@@ -9,6 +9,21 @@
 </head>
 <body>
 
+<script>
+// Remove any `redirect` query parameter injected by hosting 404 handlers.
+// This prevents automatic client-side navigation to arbitrary paths.
+(function(){
+    try {
+        const params = new URLSearchParams(location.search);
+        if (params.has('redirect')) {
+            params.delete('redirect');
+            const newSearch = params.toString();
+            history.replaceState(null, '', location.pathname + (newSearch ? ('?' + newSearch) : '') + location.hash);
+        }
+    } catch(e) { /* ignore */ }
+})();
+</script>
+
 <nav class="topbar">
     <div class="logo">fbamse</div>
 </nav>
